@@ -64,13 +64,20 @@ func Execute() {
 	}
 }
 
+func displayVersion() string {
+	if Version == "dev" || strings.HasPrefix(Version, "v") {
+		return Version
+	}
+	return "v" + Version
+}
+
 func runRoot(cmd *cobra.Command, args []string) error {
 	port, err := strconv.Atoi(args[0])
 	if err != nil || port < 1 || port > 65535 {
 		return fmt.Errorf("invalid port %q: must be a number between 1 and 65535", args[0])
 	}
 
-	fmt.Println(titleStyle.Render(fmt.Sprintf("👻 GhostPort v%s", Version)))
+	fmt.Println(titleStyle.Render(fmt.Sprintf("👻 GhostPort %s", displayVersion())))
 
 	info, err := internal.FindProcessByPort(port)
 	if err != nil {

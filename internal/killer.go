@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/shirou/gopsutil/v4/process"
 )
@@ -12,15 +13,28 @@ func KillPID(pid int32) error {
 		return fmt.Errorf("process %d not found: %w", pid, err)
 	}
 
-	if err := proc.Terminate(); err == nil {
-		if running, _ := proc.IsRunning(); !running {
-			return nil
-		}
+	if err := proc.Terminate(); err == nil && !stillRunning(proc) {
+		return nil
 	}
 
-	if err := proc.Kill(); err != nil {
+	if err := proc.Kill(); err != nil && stillRunning(proc) {
 		return fmt.Errorf("failed to kill process %d: %w", pid, err)
 	}
 
 	return nil
+}
+
+// stillRunning polls briefly rather than checking once, since termination
+// (TerminateProcess on Windows in particular) isn't synchronous: the OS can
+// still report the process as running for a short window right after the
+// kill call returns.
+func stillRunning(proc *process.Process) bool {
+	for range 10 {
+		running, err := proc.IsRunning()
+		if err != nil || !running {
+			return false
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	return true
 }
