@@ -134,12 +134,14 @@ func promptAction(info *internal.PortInfo) error {
 		switch choice {
 		case "k", "kill":
 			if info.IsDocker {
+				fmt.Println(mutedStyle.Render(fmt.Sprintf("Stopping container %s...", info.DockerName)))
 				if err := internal.StopContainer(info.DockerName); err != nil {
 					return fmt.Errorf("failed to stop container: %w", err)
 				}
 				fmt.Println(freeStyle.Render(fmt.Sprintf("✓ Stopped container %s", info.DockerName)))
 				return nil
 			}
+			fmt.Println(mutedStyle.Render(fmt.Sprintf("Killing %s (PID: %d)...", info.ProcessName, info.PID)))
 			if err := internal.KillPID(info.PID); err != nil {
 				return fmt.Errorf("failed to kill process: %w", err)
 			}
@@ -150,9 +152,12 @@ func promptAction(info *internal.PortInfo) error {
 				fmt.Println(mutedStyle.Render("No project folder known for this process."))
 				continue
 			}
+			fmt.Println(mutedStyle.Render(fmt.Sprintf("Opening %s...", info.CWD)))
 			if err := openFolder(info.CWD); err != nil {
 				fmt.Println(busyStyle.Render(fmt.Sprintf("Failed to open folder: %v", err)))
+				return nil
 			}
+			fmt.Println(freeStyle.Render("✓ Opened folder"))
 			return nil
 		case "q", "quit", "":
 			return nil
