@@ -1,0 +1,31 @@
+# Build artifacts
+/ghostport
+/ghostport.exe
+*.exe
+*.test
+*.out
+
+# GoReleaser output
+/dist/
+*.tar.gz
+*.zip
+
+# Go tooling
+/vendor/
+
+# Environment / secrets
+.env
+.env.*
+
+.instructions.txt
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Claude Code local settings
+.claude/settings.local.json
