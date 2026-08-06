@@ -49,14 +49,14 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:     "ghostport [port]",
-	Short:   "👻 Explain and kill whatever is using a local port",
-	Version: Version,
-	Args:    cobra.ExactArgs(1),
-	RunE:    runRoot,
+	Use:   "ghostport [port]",
+	Short: "👻 Explain and kill whatever is using a local port",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runRoot,
 }
 
 func Execute() {
+	rootCmd.Version = Version
 	rootCmd.SetVersionTemplate("ghostport version {{.Version}}\n")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
