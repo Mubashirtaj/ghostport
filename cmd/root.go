@@ -126,6 +126,13 @@ func promptAction(info *internal.PortInfo) error {
 
 		switch choice {
 		case "k", "kill":
+			if info.IsDocker {
+				if err := internal.StopContainer(info.DockerName); err != nil {
+					return fmt.Errorf("failed to stop container: %w", err)
+				}
+				fmt.Println(freeStyle.Render(fmt.Sprintf("✓ Stopped container %s", info.DockerName)))
+				return nil
+			}
 			if err := internal.KillPID(info.PID); err != nil {
 				return fmt.Errorf("failed to kill process: %w", err)
 			}

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -38,6 +39,19 @@ func IsDockerPort(port int) (string, bool) {
 
 	return "", false
 }
+func StopContainer(name string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "docker", "stop", name)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("docker stop %s: %w: %s", name, err, strings.TrimSpace(string(out)))
+	}
+
+	return nil
+}
+
 func portMatches(portsField, portStr string) bool {
 	mappings := strings.Split(portsField, ",")
 	for _, mapping := range mappings {
