@@ -90,6 +90,31 @@ curl -fsSL https://raw.githubusercontent.com/mubashirtaj/ghostport/main/install.
 
 This detects your OS/architecture, downloads the latest release, and installs it to `/usr/local/bin/ghostport`.
 
+### Quick install (Windows)
+
+PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/mubashirtaj/ghostport/main/install.ps1 | iex
+```
+
+Command Prompt (cmd.exe):
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/mubashirtaj/ghostport/main/install.ps1 | iex"
+```
+
+This detects your architecture, verifies the release checksum, and installs to
+`%LOCALAPPDATA%\ghostport\bin`, adding it to your user `PATH`. No administrator
+rights needed — **open a new terminal afterwards** so the `PATH` change applies.
+
+To pin a version or choose a different location, download the script and pass parameters:
+
+```powershell
+irm https://raw.githubusercontent.com/mubashirtaj/ghostport/main/install.ps1 -OutFile install.ps1
+.\install.ps1 -Version v0.1.5 -InstallDir C:\tools\ghostport
+```
+
 ### Homebrew
 
 ```bash
