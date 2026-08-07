@@ -23,7 +23,7 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) error {
-	fmt.Println(titleStyle.Render(fmt.Sprintf("👻 GhostPort v%s", Version)))
+	fmt.Println(titleStyle.Render(fmt.Sprintf("👻 GhostPort %s", displayVersion())))
 
 	rows := make([][]string, 0, len(commonDevPorts))
 

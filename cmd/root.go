@@ -59,7 +59,8 @@ func Execute() {
 	rootCmd.Version = Version
 	rootCmd.SetVersionTemplate("ghostport version {{.Version}}\n")
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		// Cobra has already written the error to stderr; printing it again
+		// here just showed every failure twice.
 		os.Exit(1)
 	}
 }
@@ -79,16 +80,24 @@ func runRoot(cmd *cobra.Command, args []string) error {
 
 	fmt.Println(titleStyle.Render(fmt.Sprintf("👻 GhostPort %s", displayVersion())))
 
+	_, err = inspectPort(port)
+	return err
+}
+
+// inspectPort renders whatever holds the port and runs the action prompt. It
+// reports whether the port ended up freed, so `ghostport run` knows when the
+// command it wrapped is worth retrying.
+func inspectPort(port int) (freed bool, err error) {
 	info, err := internal.FindProcessByPort(port)
 	if err != nil {
-		return fmt.Errorf("failed to inspect port %d: %w", port, err)
+		return false, fmt.Errorf("failed to inspect port %d: %w", port, err)
 	}
 
 	if info == nil {
 		body := fmt.Sprintf("Port %d is %s\nNothing is listening here — it's all yours.",
 			port, freeStyle.Render("FREE"))
 		fmt.Println(boxStyle.Render(body))
-		return nil
+		return false, nil
 	}
 
 	renderPortInfo(info)
@@ -120,14 +129,14 @@ func renderPortInfo(info *internal.PortInfo) {
 	fmt.Println(boxStyle.Render(b.String()))
 }
 
-func promptAction(info *internal.PortInfo) error {
+func promptAction(info *internal.PortInfo) (freed bool, err error) {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
 		fmt.Print("> ")
 		line, err := reader.ReadString('\n')
 		if err != nil {
-			return nil
+			return false, nil
 		}
 		choice := strings.ToLower(strings.TrimSpace(line))
 
@@ -136,17 +145,17 @@ func promptAction(info *internal.PortInfo) error {
 			if info.IsDocker {
 				fmt.Println(mutedStyle.Render(fmt.Sprintf("Stopping container %s...", info.DockerName)))
 				if err := internal.StopContainer(info.DockerName); err != nil {
-					return fmt.Errorf("failed to stop container: %w", err)
+					return false, fmt.Errorf("failed to stop container: %w", err)
 				}
 				fmt.Println(freeStyle.Render(fmt.Sprintf("✓ Stopped container %s", info.DockerName)))
-				return nil
+				return true, nil
 			}
 			fmt.Println(mutedStyle.Render(fmt.Sprintf("Killing %s (PID: %d)...", info.ProcessName, info.PID)))
 			if err := internal.KillPID(info.PID); err != nil {
-				return fmt.Errorf("failed to kill process: %w", err)
+				return false, fmt.Errorf("failed to kill process: %w", err)
 			}
 			fmt.Println(freeStyle.Render(fmt.Sprintf("✓ Killed %s (PID: %d)", info.ProcessName, info.PID)))
-			return nil
+			return true, nil
 		case "o", "open":
 			if info.CWD == "" {
 				fmt.Println(mutedStyle.Render("No project folder known for this process."))
@@ -155,12 +164,12 @@ func promptAction(info *internal.PortInfo) error {
 			fmt.Println(mutedStyle.Render(fmt.Sprintf("Opening %s...", info.CWD)))
 			if err := openFolder(info.CWD); err != nil {
 				fmt.Println(busyStyle.Render(fmt.Sprintf("Failed to open folder: %v", err)))
-				return nil
+				return false, nil
 			}
 			fmt.Println(freeStyle.Render("✓ Opened folder"))
-			return nil
+			return false, nil
 		case "q", "quit", "":
-			return nil
+			return false, nil
 		default:
 			fmt.Println(mutedStyle.Render("Please choose [k] Kill, [o] Open folder, or [q] Quit"))
 		}
