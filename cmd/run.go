@@ -12,8 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// maxAttempts bounds the run → conflict → kill → rerun cycle. Without a cap, a
-// process supervised by something that restarts it would loop forever.
 const maxAttempts = 4
 
 var noRetry bool
@@ -40,14 +38,12 @@ Works with whatever prints the error: node, python, go, docker, java, rails,
 
 func init() {
 	runCmd.Flags().BoolVar(&noRetry, "no-retry", false, "don't re-run the command after freeing the port")
-	// Stop parsing flags at the first positional argument so the wrapped
-	// command keeps its own flags: `ghostport run npm run dev --port 3000`.
+
 	runCmd.Flags().SetInterspersed(false)
 
 	rootCmd.AddCommand(runCmd)
 }
 
-// watchResult is the outcome of one supervised run of the user's command.
 type watchResult struct {
 	exitCode    int
 	sawConflict bool
@@ -55,8 +51,6 @@ type watchResult struct {
 }
 
 func runRun(cmd *cobra.Command, args []string) error {
-	// Cobra prints usage for any error we return, which is noise once the
-	// child command is the thing that failed.
 	cmd.SilenceUsage = true
 
 	argPort := internal.PortFromArgs(args)
@@ -76,8 +70,6 @@ func runRun(cmd *cobra.Command, args []string) error {
 			port = argPort
 		}
 
-		// Not a port problem, or one we can't pin to a number — stay out of the
-		// way and exit exactly as the command did.
 		if !res.sawConflict || port == 0 {
 			if res.sawConflict {
 				fmt.Fprintln(os.Stderr, mutedStyle.Render(
@@ -110,8 +102,6 @@ func runRun(cmd *cobra.Command, args []string) error {
 	}
 }
 
-// executeWatched runs the command with its streams wired to the terminal, while
-// a sniffer reads the same bytes looking for a port collision.
 func executeWatched(args []string) (watchResult, error) {
 	child := exec.Command(args[0], args[1:]...)
 
@@ -123,8 +113,6 @@ func executeWatched(args []string) (watchResult, error) {
 	err := child.Run()
 	sniffer.Flush()
 
-	// The command couldn't be started at all — a typo'd binary, say. That's our
-	// error to report, not an exit code to pass along.
 	var execErr *exec.Error
 	if errors.As(err, &execErr) {
 		return watchResult{}, fmt.Errorf("cannot run %q: %w", args[0], execErr.Err)
@@ -139,8 +127,7 @@ func executeWatched(args []string) (watchResult, error) {
 		res.exitCode = 0
 	case errors.As(err, &exitErr):
 		res.exitCode = exitErr.ExitCode()
-		// A signal-killed process reports -1; treat it as a generic failure so
-		// the code we eventually exit with is a valid one.
+
 		if res.exitCode < 0 {
 			res.exitCode = 1
 		}
@@ -151,8 +138,6 @@ func executeWatched(args []string) (watchResult, error) {
 	return res, nil
 }
 
-// exitWith mirrors the wrapped command's exit code, so `ghostport run` is
-// transparent to scripts and CI.
 func exitWith(code int) error {
 	if code == 0 {
 		return nil

@@ -6,9 +6,6 @@ import (
 	"github.com/mubashirtaj/ghostport/cmd"
 )
 
-// version is set at build time via:
-//
-//	-ldflags "-X main.version={{.Version}}"
 var version = "dev"
 
 func main() {
@@ -16,9 +13,6 @@ func main() {
 	cmd.Execute()
 }
 
-// resolveVersion falls back to the module version Go embeds automatically
-// when installed via `go install .../ghostport@version`, since that path
-// doesn't run GoReleaser's ldflags.
 func resolveVersion() string {
 	if version != "dev" {
 		return version

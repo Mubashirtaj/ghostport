@@ -24,10 +24,6 @@ func KillPID(pid int32) error {
 	return nil
 }
 
-// stillRunning polls briefly rather than checking once, since termination
-// (TerminateProcess on Windows in particular) isn't synchronous: the OS can
-// still report the process as running for a short window right after the
-// kill call returns.
 func stillRunning(proc *process.Process) bool {
 	for range 10 {
 		running, err := proc.IsRunning()

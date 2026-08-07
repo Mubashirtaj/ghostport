@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// commonDevPorts lists ports frequently used by local dev tooling.
 var commonDevPorts = []int{3000, 3001, 5173, 8000, 8080, 5432}
 
 var listCmd = &cobra.Command{
@@ -23,7 +22,7 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) error {
-	fmt.Println(titleStyle.Render(fmt.Sprintf("👻 GhostPort %s", displayVersion())))
+	fmt.Println(titleStyle.Render(fmt.Sprintf("👻 GhostPort v%s", Version)))
 
 	rows := make([][]string, 0, len(commonDevPorts))
 

@@ -2,8 +2,6 @@ package internal
 
 import "testing"
 
-// TestSnifferRealWorldErrors feeds the sniffer the exact lines these tools print
-// when a port is taken.
 func TestSnifferRealWorldErrors(t *testing.T) {
 	tests := []struct {
 		name string
@@ -108,8 +106,6 @@ func TestSnifferRealWorldErrors(t *testing.T) {
 	}
 }
 
-// TestSnifferIgnoresUnrelatedOutput guards against dragging the user into the
-// kill prompt over an error that has nothing to do with ports.
 func TestSnifferIgnoresUnrelatedOutput(t *testing.T) {
 	tests := []struct {
 		name string
@@ -137,8 +133,6 @@ func TestSnifferIgnoresUnrelatedOutput(t *testing.T) {
 	}
 }
 
-// TestSnifferSplitWrites checks that a message arriving in fragments — which is
-// how a pipe actually delivers it — still parses.
 func TestSnifferSplitWrites(t *testing.T) {
 	chunks := []string{
 		"Error: listen EADD",
@@ -153,7 +147,6 @@ func TestSnifferSplitWrites(t *testing.T) {
 		}
 	}
 
-	// No trailing newline: nothing should be detected until Flush runs.
 	if _, sawConflict := s.Conflict(); sawConflict {
 		t.Error("detected conflict before Flush on an unterminated line")
 	}
@@ -166,8 +159,6 @@ func TestSnifferSplitWrites(t *testing.T) {
 	}
 }
 
-// TestSnifferKeepsFirstConflict makes sure a retry loop's later, vaguer message
-// can't overwrite the port we already pinned down.
 func TestSnifferKeepsFirstConflict(t *testing.T) {
 	s := NewConflictSniffer()
 	out := "Error: listen EADDRINUSE: address already in use :::3000\n" +
